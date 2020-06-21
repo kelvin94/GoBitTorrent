@@ -2,29 +2,54 @@ package main
 
 import (
 	torrentfile "kelvin94/btClient/torrentfile"
+
 	"fmt"
-	"net/http"
-	"time"
+	"os"
+	downloader "kelvin94/btClient/downloader"
+
 )
-type bencodeTrackerResp struct {
-	Interval int    `bencode:"interval"`
-	Peers    string `bencode:"peers"`
-}
+
+
 func main()  {
-	tf := torrentfile.Open("")
-	url, err := tf.BuildTrackerGETRequest()
+	torrentFilePath := os.Args[1]
+	tf := torrentfile.Open(torrentFilePath)
+	
+	url, peerId, err := tf.BuildTrackerGETRequest()
 	if err != nil {
 		fmt.Println( err)
 	}
-
-	c := &http.Client{Timeout: 30 * time.Second}
-	res, err := c.Get(url)
+	peers,err := tf.CallTracker(url)
 	if err != nil {
-		fmt.Println( err)
+		fmt.Println(err)
 	}
-	fmt.Println(res)
-	// fmt.Println()
-	// get TorrentFile Object
+	torrent := &downloader.Torrent{
+		Peers : peers,
+		InfoHash : tf.InfoHash,
+		PeerId : peerId, // my own peer ID
+		PieceLength : tf.Info.PieceLength,
+		Pieces  : tf.Info.Pieces,
+		Length  : tf.Info.Length,
+	}
 
-	// dump TorrentFile into Tracker
+
+	file, err := torrent.Download()
+	if(len(file) > 0) {
+		fmt.Println("###Finished download, the file size is:",len(file))
+	}
+	
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	outFile, err := os.Create("/mnt/d/bitTorrentClient/debian.iso")
+	if err != nil {
+		fmt.Println(err) 
+	}
+	defer outFile.Close()
+	_, err = outFile.Write(file)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+
 }
