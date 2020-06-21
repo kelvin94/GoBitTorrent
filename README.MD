@@ -13,8 +13,8 @@ Project structure, implementation and ideas are heavily inspired/learned from th
 
 
 To use this application: 
-Step 1. make build
-Step 2. make run
+1. make build
+2. make run
 (If failed to use download from the testing torrent file, that's probably the torrent is expired as the archLinux torrent is frequently replaced in the tracker side)
 
 Additional features to build in the future:
